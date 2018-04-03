@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: kube-front
+  profiles:
+    active: local
+  cloud:
+    config:
+      label: master
+      uri: http://${VCONFIGHOST:localhost.shinigami.io}:${VCONFIGPORT:8761}/registry/config
+      username: ${VCONFIGUSER:config}
+      password: ${VCONFIGPASS:config}

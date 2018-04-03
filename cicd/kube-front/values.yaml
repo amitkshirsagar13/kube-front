@@ -1,0 +1,5 @@
+profile: dev
+branch: dev
+scale: 1
+application: kube-front
+commit: latest

@@ -1,0 +1,5 @@
+server: 
+  display-name: ${VHOSTNAME:${HOSTNAME:localhost.shinigami.io}}
+  address: ${HOSTNAME:localhost.shinigami.io}
+  port: ${VPORT:8990}
+  context-path: /
