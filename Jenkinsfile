@@ -48,7 +48,7 @@ volumes: [
     stage('Deploy helm release') {
       echo "Project: $project | Application: $application | tag: $shortGitCommit"
       container('helm') {
-    	sh "helm upgrade --install $application --namespace $gitBranch ./cicd/kube-server/ --set profile=$profile --set branch=$gitBranch --set commit=$shortGitCommit --set application=$application"
+    	sh "helm upgrade --install $application --namespace $gitBranch ./cicd/$application/ --set profile=$profile --set branch=$gitBranch --set commit=$shortGitCommit --set application=$application"
       }
     }
   }
