@@ -13,6 +13,11 @@ spec:
       labels:
         app: {{.Values.application}}
     spec:
+      hostAliases:
+       - ip: 127.0.0.1
+         hostnames:
+         - {{.Values.application}}
+         - "{{.Values.application}}.{{.Values.branch}}.shinigami.io"
       containers:
       - name: {{.Values.application}}
         image: "amitkshirsagar13/{{.Values.application}}:{{.Values.commit}}"
