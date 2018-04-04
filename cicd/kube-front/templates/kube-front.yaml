@@ -27,10 +27,12 @@ spec:
           value: kube-eureka
         - name: VEUREKAPORT
           value: "8761"
+        - name: VSERVICEHOST
+          value: {{.Values.application}}
         - name: VSECUREPORT
-          value: "443"
+          value: "8090"
         - name: VNONSECUREPORT
-          value: "80"
+          value: "8090"
         - name: VCONFIGHOST
           value: kube-eureka
         - name: VCONFIGPORT
