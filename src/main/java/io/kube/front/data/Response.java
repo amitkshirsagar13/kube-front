@@ -30,6 +30,7 @@ public class Response<T> {
 	private String server;
 	private String port;
 	private List<String> errorList;
+	private String status;
 	private T baseResponse;
 
 	/**
@@ -117,6 +118,22 @@ public class Response<T> {
 
 	public Response addError(String message) {
 		getErrorList().add(message);
+		return this;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public String getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status
+	 *            the status to set
+	 */
+	public Response setStatus(String status) {
+		this.status = status;
 		return this;
 	}
 

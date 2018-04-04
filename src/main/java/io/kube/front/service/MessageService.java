@@ -3,12 +3,16 @@
  */
 package io.kube.front.service;
 
+import java.util.Random;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 import io.kube.front.data.Message;
 import io.kube.front.data.Response;
@@ -46,6 +50,7 @@ public class MessageService {
 		this.serviceUrl = serviceUrl.startsWith("http") ? serviceUrl : "http://" + serviceUrl;
 	}
 
+	@HystrixCommand(fallbackMethod = "alternateControllerMethod", commandKey = "getByName", groupKey = "MessageService")
 	public Response<Message> getByName(String name) throws ResponseNotFoundException {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(serviceUrl + "/rest/api/message")
 				// Add query parameter
@@ -55,9 +60,27 @@ public class MessageService {
 		log4j.info("Called frontend service:" + queryUrl);
 		Response<Message> responseList = restTemplate.getForObject(queryUrl, Response.class);
 
-		if (responseList == null)
+		if (responseList == null || !name.contains("srvr"))
 			throw new ResponseNotFoundException(name);
 		else
 			return responseList;
+	}
+
+	private static int getRandomNumberInRange(int min, int max) {
+
+		if (min >= max) {
+			throw new IllegalArgumentException("max must be greater than min");
+		}
+
+		Random r = new Random();
+		return r.nextInt((max - min) + 1) + min;
+	}
+
+	public Response alternateControllerMethod(Throwable e) {
+		return new Response().addError("Mongodb not available...Failing over....").setStatus("failure");
+	}
+
+	public Response alternateControllerMethod(String message, Throwable e) {
+		return new Response().addError("Mongodb not available...Failing over....").setStatus("failure");
 	}
 }
