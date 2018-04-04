@@ -51,7 +51,7 @@ public class MessageService {
 	}
 
 	@HystrixCommand(fallbackMethod = "alternateControllerMethod", commandKey = "getByName", groupKey = "MessageService")
-	public Response<Message> getByName(String name) throws ResponseNotFoundException {
+	public Response getByName(String name) throws ResponseNotFoundException {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(serviceUrl + "/rest/api/message")
 				// Add query parameter
 				.queryParam("name", name);
@@ -77,10 +77,12 @@ public class MessageService {
 	}
 
 	public Response alternateControllerMethod(Throwable e) {
-		return new Response().addError("Mongodb not available...Failing over....").setStatus("failure");
+		return new Response().addError("Mongodb not available...Failing over....:" + e.getMessage())
+				.setStatus("failure");
 	}
 
 	public Response alternateControllerMethod(String message, Throwable e) {
-		return new Response().addError("Mongodb not available...Failing over....").setStatus("failure");
+		return new Response().addError("Mongodb not available...Failing over....:" + e.getMessage())
+				.setStatus("failure");
 	}
 }
