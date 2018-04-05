@@ -6,12 +6,16 @@ metadata:
   labels:
     app: {{.Values.application}}
     version: "{{.Values.application}}-{{.Values.commit}}"
+    hystrix.cluster: default
+    hystrix.enabled: true
 spec:
   replicas: {{.Values.scale}}
   template:
     metadata:
       labels:
         app: {{.Values.application}}
+        hystrix.cluster: default
+        hystrix.enabled: true
     spec:
       hostAliases:
        - ip: 127.0.0.1
@@ -22,12 +26,14 @@ spec:
       - name: {{.Values.application}}
         image: "amitkshirsagar13/{{.Values.application}}:{{.Values.commit}}"
         ports:
-        - containerPort: 8990
+        - containerPort: 8080
         env:
         - name: spring.profiles.active
           value: "{{.Values.profile}}"
         - name: VHOSTNAME
           value: "{{.Values.application}}.{{.Values.branch}}.shinigami.io"
+        - name: VPORT
+          value: "8080"
         - name: VEUREKAHOST
           value: kube-eureka
         - name: VEUREKAPORT
@@ -35,9 +41,9 @@ spec:
         - name: VSERVICEHOST
           value: {{.Values.application}}
         - name: VSECUREPORT
-          value: "8090"
+          value: "80"
         - name: VNONSECUREPORT
-          value: "8090"
+          value: "80"
         - name: VCONFIGHOST
           value: kube-eureka
         - name: VCONFIGPORT
@@ -52,10 +58,12 @@ kind: Service
 metadata:
   name: {{.Values.application}}
   namespace: {{.Values.branch}}
+  hystrix.cluster: default
+  hystrix.enabled: true
 spec:
   ports:
-  - port: 8090
-    targetPort: 8990
+  - port: 80
+    targetPort: 8080
   selector:
     app: {{.Values.application}}
 ---
@@ -84,5 +92,5 @@ spec:
         paths:
           - backend:
               serviceName: {{.Values.application}}
-              servicePort: 8090
+              servicePort: 80
             path: /
