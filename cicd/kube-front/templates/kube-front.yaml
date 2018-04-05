@@ -7,7 +7,7 @@ metadata:
     app: {{.Values.application}}
     version: "{{.Values.application}}-{{.Values.commit}}"
     hystrix.cluster: default
-    hystrix.enabled: true
+    hystrix.enabled: "true"
 spec:
   replicas: {{.Values.scale}}
   template:
@@ -15,7 +15,7 @@ spec:
       labels:
         app: {{.Values.application}}
         hystrix.cluster: default
-        hystrix.enabled: true
+        hystrix.enabled: "true"
     spec:
       hostAliases:
        - ip: 127.0.0.1
@@ -59,7 +59,7 @@ metadata:
   name: {{.Values.application}}
   namespace: {{.Values.branch}}
   hystrix.cluster: default
-  hystrix.enabled: true
+  hystrix.enabled: "true"
 spec:
   ports:
   - port: 80
