@@ -60,7 +60,7 @@ public class MessageService {
 		log4j.info("Called frontend service:" + queryUrl);
 		Response<Message> responseList = restTemplate.getForObject(queryUrl, Response.class);
 
-		if (responseList == null || !name.contains("srvr"))
+		if (responseList == null || name.contains("srvr"))
 			throw new ResponseNotFoundException(name);
 		else
 			return responseList;
