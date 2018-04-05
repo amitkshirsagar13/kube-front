@@ -50,7 +50,7 @@ public class MessageService {
 		this.serviceUrl = serviceUrl.startsWith("http") ? serviceUrl : "http://" + serviceUrl;
 	}
 
-	@HystrixCommand(fallbackMethod = "alternateControllerMethod", commandKey = "getByName", groupKey = "MessageService")
+	@HystrixCommand(fallbackMethod = "alternateControllerMethod", commandKey = "getByName", groupKey = "MessageService-Front")
 	public Response getByName(String name) throws ResponseNotFoundException {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(serviceUrl + "/rest/api/message")
 				// Add query parameter
