@@ -62,7 +62,7 @@ metadata:
   hystrix.enabled: "true"
 spec:
   ports:
-  - port: 8080
+  - port: 80
     targetPort: 8080
   selector:
     app: {{.Values.application}}
@@ -92,5 +92,5 @@ spec:
         paths:
           - backend:
               serviceName: {{.Values.application}}
-              servicePort: 8080
+              servicePort: 80
             path: /
