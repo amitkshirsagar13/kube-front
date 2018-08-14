@@ -1,66 +1,35 @@
-def label = "worker-${UUID.randomUUID().toString()}"
-
+def label = "jenkins-slave-${UUID.randomUUID().toString()}"
 
 podTemplate(label: label, containers: [
-  containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true), 
-  containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
+  containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', command: 'cat', ttyEnabled: true),
+  containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true),  
+  containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:latest', command: 'cat', ttyEnabled: true),
   containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true)
-
 ],
 volumes: [
-  hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')
+	hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
+	persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'jenkins-persistent-repository-storage-claim', readOnly: false)
 ]) {
-  node(label) {
-  
-	def profile = "dev"
-    def myRepo = checkout scm
-    def gitCommit = myRepo.GIT_COMMIT
-    def gitBranch = myRepo.GIT_BRANCH
-    def shortGitCommit = "${gitCommit[0..10]}"
-    //def mvnTool = tool 'maven'
-    def project = "basekube"
-    def application = "kube-front"
-    def dockerApp
-    stage('Build Project') {
-       echo "Building Project...$gitBranch:$shortGitCommit"
-       //container('maven') {
-	   //     stage('Build a Maven project') {
-	   //       sh "mvn -Dmaven.test.skip=true clean install"
-	   //     }
-	   //}
-	   withMaven(
-        // Maven installation declared in the Jenkins "Global Tool Configuration"
-        maven: 'maven',
-        // Maven settings.xml file defined with the Jenkins Config File Provider Plugin
-        
-        // settings.xml referencing the GitHub Artifactory repositories
-        //mavenSettingsConfig: '0e94d6c3-b431-434f-a201-7d7cda7180cb',
-        mavenLocalRepo: '.repository'
-        ) {
-        	sh "mvn -Dmaven.test.skip=true clean install"
-        }
-    }    
-    stage('Create Docker images and Push') {
-      container('docker') {
-        withCredentials([[$class: 'UsernamePasswordMultiBinding',
-          credentialsId: 'docker-hub-credentials',
-          usernameVariable: 'DOCKER_HUB_USER',
-          passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
-          sh """
-            docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
-            docker build -t amitkshirsagar13/$application:$shortGitCommit -t amitkshirsagar13/$application:latest .
-	        docker push amitkshirsagar13/$application:$shortGitCommit
-            docker push amitkshirsagar13/$application:latest
-            """
-        }
-      }
+    node(label) {
+        def pipe= require("pipe/app")
+        pipe.start(env)
     }
-    stage('Deploy helm release') {
-      echo "Project: $project | Application: $application | tag: $shortGitCommit"
-      container('helm') {
-    	sh "helm upgrade --install $application --namespace $gitBranch ./cicd/$application/ --set profile=$profile --set branch=$gitBranch --set commit=$shortGitCommit --set application=$application"
-      }
+}
+
+def require(moduleName) {
+    def branch = "master"
+    if ( "${env['flag-feature-toggling']}" == "yes" ) {
+        if ( env['flag-feature-toggling-branch'] != null ) {
+            branch = "${env['flag-feature-toggling-branch']}"
+        }
     }
-  }
+
+    container('maven') {
+        def url = "https://raw.githubusercontent.com/amitkshirsagar13/base-pipeline/${branch}/${moduleName}.groovy"
+        sh """#!/bin/bash
+        curl -s -o ./pipeline.base.groovy "${url}"
+        """
+        def func = load("./pipeline.base.groovy")
+        return func
+    }
 }
